@@ -1,0 +1,14 @@
+---
+# Source: istio-operator/templates/clusterrole_binding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: istio-operator-1-9-4
+subjects:
+- kind: ServiceAccount
+  name: istio-operator-1-9-4
+  namespace: istio-operator
+roleRef:
+  kind: ClusterRole
+  name: istio-operator-1-9-4
+  apiGroup: rbac.authorization.k8s.io

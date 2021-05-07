@@ -1,0 +1,93 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  namespace: istio-system
+  name: istio-controlplane
+spec:
+  revision: "1-9-4"
+  profile: default
+  meshConfig:
+    accessLogFile: /dev/stdout
+    enableTracing: true
+    enablePrometheusMerge: true
+    enableAutoMtls: false
+    extensionProviders:
+      name: jaeger-collector
+      envoyExtAuthzGrpc:
+        service: jaeger-operator-jaeger-collector.istio-system
+        port: 14250
+    defaultConfig:
+      discoveryAddress: istiod-1-9-4.istio-system.svc:15012
+      proxyMetadata: {}
+      tracing:
+        zipkin:
+          address: jaeger-operator-jaeger-collector.istio-system:9411
+        sampling: 100.0
+  values:
+    global:
+      logging:
+        level: "default:info"
+      istioNamespace: istio-system
+  components:
+    pilot:
+      k8s:
+        env:
+        - name: PILOT_TRACE_SAMPLING
+          value: "100"
+        resources:
+          requests:
+            cpu: 1000m
+            memory: 1024Mi
+        hpaSpec:
+          maxReplicas: 10
+          minReplicas: 2
+        nodeSelector:
+          taco-istio: enabled
+    egressGateways:
+    - name: istio-egressgateway
+      namespace: istio-system
+      enabled: true
+      k8s:
+        resources:
+          requests:
+            cpu: 1000m
+            memory: 1024Mi
+        hpaSpec:
+          maxReplicas: 10
+          minReplicas: 2
+        nodeSelector:
+          taco-istio: enabled
+    ingressGateways:
+    - name: istio-ingressgateway
+      namespace: istio-system
+      enabled: true
+      k8s:
+        resources:
+          requests:
+            cpu: 1000m
+            memory: 1024Mi
+        hpaSpec:
+          maxReplicas: 10
+          minReplicas: 2
+        nodeSelector:
+          taco-istio: enabled
+        service:
+          type: NodePort
+          ports:
+          - name: status-port
+            port: 15021
+            targetPort: 15021
+          - name: http2
+            port: 80
+            targetPort: 8080
+            nodePort: 31080
+          - name: https
+            port: 443
+            targetPort: 8443
+            nodePort: 30443
+          - name: tcp
+            port: 31400
+            targetPort: 31400
+          - name: tls
+            port: 15443
+            targetPort: 15443
