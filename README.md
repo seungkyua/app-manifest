@@ -1,1 +1,1 @@
-# app-manifest
+# gitops-argo-example
